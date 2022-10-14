@@ -1,4 +1,4 @@
-OperationType list: min cycles max cycles
+Operation list: min cycles max cycles
 CALCULATE  5  100
 CALCULATE  25  50
 I/O   10  20
