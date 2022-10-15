@@ -32,6 +32,10 @@ public class Process {
     }
 
     public String toString() {
-        return op.toString()+" "+cycles;
+        if (op.equals(Operation.IO)) {
+            return op.toString() + "\t\t\t\t" + cycles;
+        }else {
+            return op.toString() + "\t\t" + cycles;
+        }
     }
 }

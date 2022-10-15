@@ -1,4 +1,5 @@
 import java.io.FileNotFoundException;
+import java.util.Random;
 
 // the potential States for a Program or Process
 enum State {
@@ -9,7 +10,7 @@ enum State {
 public class Program {
     State state;
     Process[] processes;
-    int currentProcesses = 0;
+    int currentProcess = 0;
     ProcessTemplates template;
     {
         try {
@@ -19,14 +20,14 @@ public class Program {
         }
     }
 
-    public Program (int numProcesses) {
-        //Scheduler will manage the rate at which the processes are created given a number of programs
-        setState(State.NEW);
+    //creates a program with a random number of random process
+    public Program () {
 
-        processes = new Process[numProcesses];
+        setState(State.NEW);
+        Random random = new Random();
+        processes = new Process[random.nextInt(3,8)];
         for (int i = 0; i< processes.length; i++) {
             processes[i] = new Process(template.makeOp(), template.makeCycles());
-            currentProcesses++;
         }
 
         //Will only begin prepossessing given that all processes are created
@@ -46,14 +47,11 @@ public class Program {
     public Process[] getProcesses() {
         return processes;
     }
-    public int getCurrentProcesses() {
-        return currentProcesses;
-    }
 
     public String toString() {
         String table = "";
         for (int i = 0; i< processes.length; i++) {
-            table.concat(processes[i].toString()+"\n");
+            table += processes[i].toString()+"\n";
         }
         return table;
     }

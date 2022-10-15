@@ -16,7 +16,7 @@ public class ProcessTemplates {
 
     ProcessTemplates() throws FileNotFoundException {
         File file = new File
-                ("C:\\Users\\ricar\\OneDrive\\Desktop\\School\\Fall2022\\Intro to OS\\Programming\\OS\\untitled\\src\\Template.txt");
+                ("C:\\Users\\ricar\\OneDrive\\Desktop\\School\\Fall2022\\Intro to OS\\Programming\\OS\\CMSC312\\src\\Template.txt");
         Scanner scanner = new Scanner(file);
 
 
