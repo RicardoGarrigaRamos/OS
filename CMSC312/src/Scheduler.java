@@ -4,12 +4,16 @@ import java.util.Queue;
 
 // manages CPU usage at the command of the OS
 public class Scheduler {
-    CPU cpu;
-    Queue<Program> programs = new LinkedList<>();
-    Queue<Program> waiting = new LinkedList<>();
+    PCB pcb = new PCB();
+    Queue<Process> READY = new LinkedList<>();
+    PriorityQueue<Process> WAITING = new PriorityQueue<>();
+    Process[] RUNNING;
 
-    public Scheduler(CPU cpu) {
-        setCpu(cpu);
+    public Scheduler(PCB pcb) {
+        RUNNING = new Process[pcb.cpu];
+        for(int i = 0; i<RUNNING.length; i++) {
+            RUNNING[i] = null;
+        }
     }
 
 
@@ -19,27 +23,20 @@ public class Scheduler {
      * for a given number of cycles, simulating the usage of CPU resource).
      **/
     public void calculate(int cycles) {
-        programs.peek().setState(State.RUN);
-        //checks if current program has calculations remaining and has time remaining from the scheduler
-        int i = 0;
-        while ((programs.peek().getProcesses()[programs.peek().currentProcess].getCycles() > 0) && (i<cycles)) {
-            programs.peek().getProcesses()[programs.peek().currentProcess].cycle();
-            i++;
+        for(int i = 0; i< cycles; i++) {
+            for(int j = 0; j<RUNNING.length; j++) {
+                if(RUNNING[j] != null)
+                    RUNNING[j].operations[RUNNING[j].pointer].length--;
+            }
         }
-        //to see if scheduler is working as intended
-        //System.out.println(programs.peek().toString());
     }
+
 
     /**
      * I/O – This will put the process in the waiting state for a specified number of cycles.
      **/
     public void io(int cycles)  {
-        programs.peek().setState(State.WAIT);
-        waiting.add(programs.poll());
-        for(int i = 0; i< cycles; i++) {
-            //wait?
-        }
-        programs.add(waiting.poll());
+
     }
 
     /**
@@ -50,49 +47,53 @@ public class Scheduler {
 
     }
 
-    public void exit() {
-        programs.peek().setState(State.EXIT);
-        //Create program from OS to be scheduled that removes the given program from memory
-        programs.poll();
+
+    public void roundRobin() {
+        if(READY.peek().operations[READY.peek().pointer].length == 0){
+            READY.peek().pointer++;
+        }
+        if(READY.peek().pointer == READY.peek().operations.length) {
+            pcb.TERMINATE.add(READY.poll());
+        }
+
+        int i = 0;
+        while(!READY.isEmpty() && i< RUNNING.length) {
+            READY.peek().state = State.RUNING;
+            RUNNING[i] = READY.poll();
+            i++;
+        }
+        calculate(5);
+        for(i=0; i< RUNNING.length; i++) {
+            RUNNING[i].state = State.READY;
+            READY.add(RUNNING[i]);
+            RUNNING[i] = null;
+        }
+
+
     }
+
+    public void shortestJobFirst() {
+
+        calculate();
+    }
+
+
+
+
 
 
     public boolean isActive() {
-        if(programs.isEmpty()) return false;
+        if(READY.isEmpty() || WAITING.isEmpty()) return false;
         else return true;
     }
-
     public void create (){
-        programs.add(new Program());
-        //to check if programs are generated correctly
-        //System.out.println(programs.peek().toString());
+        pcb.NEW.push(new Process());
+        READY.add(pcb.NEW.peek());
     }
-
-    public void roundRobin() {
-        if (programs.peek().getProcesses()[programs.peek().currentProcess].getCycles() == 0) {
-            programs.peek().currentProcess++;
-        }
-        if (programs.peek().currentProcess == programs.peek().processes.length) {
-            exit();
-            return;
-        }
-        calculate(5);
-        programs.add(programs.poll());
+    public void calculate() {
+        calculate(1);
     }
-
-    /**
-     * work in progress
-     **/
-    public void priorityQueue() {
-        //for another day...
-        calculate(programs.peek().getProcesses()[programs.peek().currentProcess].getCycles());
-        //programs.
-    }
-
-    public void setCpu(CPU cpu) {
-        this.cpu = cpu;
-    }
-    public CPU getCpu() {
-        return cpu;
+    public void io() {
+        io(1);
     }
 }

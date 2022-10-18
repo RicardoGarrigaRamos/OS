@@ -7,27 +7,22 @@ import java.util.Scanner;
  * Manages software in regard to user input
  */
 public class OS {
+    static Scheduler scheduler;
     public static void main(String[] args) {
-        // initializing hardware and software of the OS
-        CPU cpu = new CPU();
-        Scheduler scheduler = new Scheduler(cpu);
-        boolean interrupt = false;
-
-        // Begin interaction with the client
         Scanner scanner= new Scanner(System.in);
+        System.out.print("Enter the number of Cores in CPU\n: ");
+        PCB pcb  = new PCB();
+        pcb.cpu = scanner.nextInt();
+        scheduler = new Scheduler(pcb);
+
         int running = 1;
         while (running == 1) {
             System.out.print("Enter the number of programs\n: ");
             int programs = scanner.nextInt();
-            System.out.print("Enter 1 for Round Robin\nEnter 2 for Priority Queue\n: ");
+            System.out.print("Enter 1 for Round Robin\nEnter 2 for Shortest Job First\n: ");
             int schedulerType = scanner.nextInt();
-            System.out.println("To change initial conditions type 0\nSimulating...");
 
-
-            //runs scheduler unless there are no programs remaining or there is an interrupt
-            /**
-             * Figure out how to do interrupts without pausing cpu activity
-             **/
+            //runs scheduler unless there are no programs remaining
             while (schedulerType == 1 && (scheduler.isActive()||programs>0)) {
                 if(programs>0) {
                     scheduler.create();
@@ -44,10 +39,17 @@ public class OS {
                     programs--;
                 }
 
-                scheduler.priorityQueue();
+                scheduler.shortestJobFirst();
             }
 
 
+
+            while (!pcb.NEW.isEmpty() || !pcb.TERMINATE.isEmpty()) {
+                System.out.println(pcb.NEW.pop().toString());
+            }
+            while (!pcb.TERMINATE.isEmpty()) {
+                System.out.println(pcb.TERMINATE.poll().toString());
+            }
 
             //Condition for the end of a Simulated run
             if (programs == 0) {
@@ -56,12 +58,4 @@ public class OS {
             }
         }
     }
-
-
-
-
-    public static int diagnostic (CPU cpu) {
-        return cpu.getAvailableCores();
-    }
-
 }

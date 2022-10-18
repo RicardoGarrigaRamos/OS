@@ -1,41 +1,50 @@
-// types of operations given to a certain Process
-enum Operation {
-    CALCULATE, IO, CRITICAL;
+import java.io.FileNotFoundException;
+import java.util.Random;
+
+// the potential States for a Program or Process
+enum State {
+    NEW, READY, RUNING, WAITING, TERMINATE;
 }
 
-// defined as a type of Operation and a decrementing number of cycles
+// defined as an array of Processes at a given State in its lifecycle
 public class Process {
-    Operation op;
-    int cycles;
+    int pressesID;
+    int pointer = 0;
+    int priority = 1;
+    State state;
+    Operation[] operations;
 
-    public Process (Operation op, int cycles) {
-        setOp(op);
-        setCycles(cycles);
-    }
-
-    private void setCycles(int cycles) {
-        this.cycles = cycles;
-    }
-    private void setOp(Operation op) {
-        this.op = op;
-    }
-
-    public void cycle() {
-        cycles--;
+    ProcessTemplates template;
+    {
+        try {
+            template = new ProcessTemplates();
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public int getCycles() {
-        return cycles;
+    //creates a program with a random number of random process
+    public Process () {
+        this.state = State.NEW;
+
+        Random random = new Random();
+        operations = new Operation[random.nextInt(5,8)];
+        for (int i = 0; i< operations.length; i++) {
+            operations[i] = new Operation(template.chooseOperation(), template.chooseLength());
+        }
+        operations[random.nextInt(operations.length)].operation = OP.CRITICAL;
     }
-    public Operation getOp() {
-        return op;
+    public Process (State state, Operation[] operations) {
+        this.state = state;
+        this.operations = operations;
     }
+
 
     public String toString() {
-        if (op.equals(Operation.IO)) {
-            return op.toString() + "\t\t\t\t" + cycles;
-        }else {
-            return op.toString() + "\t\t" + cycles;
+        String table = "";
+        for (int i = 0; i< operations.length; i++) {
+            table += operations[i].toString()+"\n";
         }
+        return table;
     }
 }

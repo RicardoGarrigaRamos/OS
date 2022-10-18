@@ -7,7 +7,7 @@ import java.util.Scanner;
 // Used to read and store relevant information from template.txt inorder to create processes at O(1)
 public class ProcessTemplates {
     int size = 5;
-    Operation[] ops = new Operation[size];
+    OP[] ops = new OP[size];
     int[] min = new int[size];
     int[] max = new int[size];
     Random random = new Random();
@@ -16,7 +16,7 @@ public class ProcessTemplates {
 
     ProcessTemplates() throws FileNotFoundException {
         File file = new File
-                ("C:\\Users\\ricar\\OneDrive\\Desktop\\School\\Fall2022\\Intro to OS\\Programming\\OS\\CMSC312\\src\\Template.txt");
+                ("src/Template.txt");
         Scanner scanner = new Scanner(file);
 
 
@@ -26,20 +26,15 @@ public class ProcessTemplates {
             try {
                 String text = scanner.next();
                 if (text.equals("CALCULATE")) {
-                    ops[i] = Operation.CALCULATE;
+                    ops[i] = OP.CALCULATE;
                     min[i] = Integer.parseInt(scanner.next().replaceAll("[^0-9]", ""));
                     max[i] = Integer.parseInt(scanner.next().replaceAll("[^0-9]", ""));
                     i++;
                 } else if (text.equals("I/O")) {
-                    ops[i] = Operation.IO;
+                    ops[i] = OP.IO;
                     min[i] = Integer.parseInt(scanner.next().replaceAll("[^0-9]", ""));
                     max[i] = Integer.parseInt(scanner.next().replaceAll("[^0-9]", ""));
 
-                    i++;
-                } else if (text.equals("CRITICAL")) {
-                    ops[i] = Operation.CRITICAL;
-                    min[i] = Integer.parseInt(scanner.next().replaceAll("[^0-9]", ""));
-                    max[i] = Integer.parseInt(scanner.next().replaceAll("[^0-9]", ""));
                     i++;
                 }
             } catch (NumberFormatException e) {}
@@ -48,11 +43,11 @@ public class ProcessTemplates {
 
     }
 
-    public Operation makeOp() {
+    public OP chooseOperation() {
         index = random.nextInt(5);
         return ops[index];
     }
-    public int makeCycles () {
+    public int chooseLength () {
         return random.nextInt(min[index],max[index]);
     }
 }
