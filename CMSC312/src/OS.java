@@ -10,13 +10,13 @@ public class OS {
     static Scheduler scheduler;
     public static void main(String[] args) {
         Scanner scanner= new Scanner(System.in);
-        System.out.print("Enter the number of Cores in CPU\n: ");
-        PCB pcb  = new PCB();
-        pcb.cpu = scanner.nextInt();
-        scheduler = new Scheduler(pcb);
 
         int running = 1;
         while (running == 1) {
+            System.out.print("Enter the number of Cores in CPU\n: ");
+            PCB pcb  = new PCB();
+            pcb.cpu = scanner.nextInt();
+            scheduler = new Scheduler(pcb);
             System.out.print("Enter the number of programs\n: ");
             int programs = scanner.nextInt();
             System.out.print("Enter 1 for Round Robin\nEnter 2 for Shortest Job First\n: ");
@@ -43,17 +43,19 @@ public class OS {
             }
 
 
-
+            /**
             while (!pcb.NEW.isEmpty() || !pcb.TERMINATE.isEmpty()) {
                 System.out.println(pcb.NEW.pop().toString());
             }
             while (!pcb.TERMINATE.isEmpty()) {
                 System.out.println(pcb.TERMINATE.poll().toString());
             }
+             **/
 
             //Condition for the end of a Simulated run
             if (programs == 0) {
-                System.out.println("Complete.\n\nTo exit type        0\nTo go again type    1");
+                System.out.printf("Complete.\nAverage CPU uptime was %.1f%%\n", pcb.averageCoreUtil()*100);
+                System.out.println("\nTo exit type        0\nTo go again type    1");
                 running = scanner.nextInt();
             }
         }

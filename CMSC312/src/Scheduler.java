@@ -4,12 +4,13 @@ import java.util.Queue;
 
 // manages CPU usage at the command of the OS
 public class Scheduler {
-    PCB pcb = new PCB();
+    PCB pcb;
     Queue<Process> READY = new LinkedList<>();
     PriorityQueue<Process> WAITING = new PriorityQueue<>();
     Process[] RUNNING;
 
     public Scheduler(PCB pcb) {
+        this.pcb = pcb;
         RUNNING = new Process[pcb.cpu];
         for(int i = 0; i<RUNNING.length; i++) {
             RUNNING[i] = null;
@@ -24,9 +25,12 @@ public class Scheduler {
      **/
     public void calculate(int cycles) {
         for(int i = 0; i< cycles; i++) {
+            pcb.time++;
             for(int j = 0; j<RUNNING.length; j++) {
-                if(RUNNING[j] != null)
+                if((RUNNING[j] != null) && (RUNNING[j].operations[RUNNING[j].pointer].length > 0)) {
                     RUNNING[j].operations[RUNNING[j].pointer].length--;
+                    pcb.processes++;
+                }
             }
         }
     }
@@ -49,31 +53,46 @@ public class Scheduler {
 
 
     public void roundRobin() {
-        if(READY.peek().operations[READY.peek().pointer].length == 0){
-            READY.peek().pointer++;
-        }
-        if(READY.peek().pointer == READY.peek().operations.length) {
-            pcb.TERMINATE.add(READY.poll());
-        }
-
         int i = 0;
+        //filling cpu with programs
         while(!READY.isEmpty() && i< RUNNING.length) {
-            READY.peek().state = State.RUNING;
-            RUNNING[i] = READY.poll();
-            i++;
+            // handling critical sections
+            if(READY.peek().operations[READY.peek().pointer].operation.equals(OP.CRITICAL))
+            {
+                executeCritical();
+                progress();
+                i=0;
+            }
+            if(!READY.isEmpty())
+            {
+                READY.peek().state = State.RUNING;
+                RUNNING[i] = READY.poll();
+                i++;
+            }
         }
-        calculate(5);
+        //letting the cpu run
+        if(RUNNING[0] != null) calculate(5);
+
+        //documentation
+        double cores = 0;
         for(i=0; i< RUNNING.length; i++) {
-            RUNNING[i].state = State.READY;
-            READY.add(RUNNING[i]);
-            RUNNING[i] = null;
+            if(RUNNING[i] != null)
+            {
+                System.out.println(RUNNING[i].toString());
+                cores++;
+            }
         }
+        System.out.printf("CPU Utilized %.1f%% of cores this time slice\n\n", cores/RUNNING.length*100);
 
+        //adjusts metadata of possess
+        progress();
 
+        //refactoring the ready queue
+        clearRunning();
     }
 
     public void shortestJobFirst() {
-
+        
         calculate();
     }
 
@@ -83,10 +102,10 @@ public class Scheduler {
 
 
     public boolean isActive() {
-        if(READY.isEmpty() || WAITING.isEmpty()) return false;
+        if(READY.isEmpty() && WAITING.isEmpty()) return false;
         else return true;
     }
-    public void create (){
+    public void create(){
         pcb.NEW.push(new Process());
         READY.add(pcb.NEW.peek());
     }
@@ -95,5 +114,47 @@ public class Scheduler {
     }
     public void io() {
         io(1);
+    }
+
+    public void clearRunning() {
+        for(int i=0; i< RUNNING.length; i++) {
+            if(RUNNING[i] != null) {
+                RUNNING[i].state = State.READY;
+                READY.add(RUNNING[i]);
+                RUNNING[i] = null;
+            }
+        }
+    }
+
+    public void executeCritical() {
+        clearRunning();
+        READY.peek().state = State.RUNING;
+        RUNNING[0] = READY.poll();
+        int cycles = RUNNING[0].operations[RUNNING[0].pointer].length;
+        calculate(cycles);
+
+        //documentation
+        System.out.println(RUNNING[0].toString());
+        System.out.printf("CPU Utilized %.1f%% of cores for " + cycles + " Cycles\n\n", ((1)/(double)RUNNING.length)*100 );
+
+        progress();
+        if(RUNNING[0] != null)
+        {
+            RUNNING[0].state = State.READY;
+            READY.add(RUNNING[0]);
+        }
+    }
+    public void progress() {
+        for (int i = 0; i<RUNNING.length; i++) {
+            if(RUNNING[i] != null) {
+                if (RUNNING[i].operations[RUNNING[i].pointer].length == 0) {
+                    RUNNING[i].pointer++;
+                }
+                if (RUNNING[i].pointer == RUNNING[i].operations.length) {
+                    pcb.TERMINATE.add(RUNNING[i]);
+                    RUNNING[i] = null;
+                }
+            }
+        }
     }
 }

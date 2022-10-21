@@ -11,7 +11,14 @@ public class PCB {
     int cpu;
     Stack<Process> NEW = new Stack<>();
     Queue<Process> TERMINATE = new LinkedList<>();
+    double processes = 0;
+    int time = 0;
 
 
-
+    public double averageCoreUtil(){
+        double maximumOutput = time*cpu;
+        return processes/maximumOutput;
+    }
 }
+
+
