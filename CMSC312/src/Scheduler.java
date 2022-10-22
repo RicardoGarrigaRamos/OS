@@ -61,7 +61,6 @@ public class Scheduler {
             if(READY.peek().operations[READY.peek().pointer].operation.equals(OP.CRITICAL))
             {
                 executeCritical();
-                progress();
                 i=0;
             }
             if(!READY.isEmpty())
@@ -93,8 +92,6 @@ public class Scheduler {
     }
 
     public void shortestJobFirst() {
-        //refactoring the ready queue
-        if(!READY.isEmpty()) clearRunning();
         while(!READY.isEmpty()) {
             io();
         }
@@ -107,11 +104,13 @@ public class Scheduler {
             {
                 READY.add(WAITING.poll());
                 executeCritical();
-                //progress();
                 i=0;
             }
 
 
+            while (!READY.isEmpty()) {
+                WAITING.add(READY.poll());
+            }
             if(!WAITING.isEmpty())
             {
                 WAITING.peek().state = State.RUNING;
@@ -136,6 +135,9 @@ public class Scheduler {
 
         //adjusts metadata of possess
         progress();
+
+        //refactoring the ready queue
+        clearRunning();
     }
 
 
@@ -144,7 +146,12 @@ public class Scheduler {
 
 
     public boolean isActive() {
-        if(READY.isEmpty() && WAITING.isEmpty() && (RUNNING[0] ==null)) return false;
+        boolean runningIsEmpty = true;
+        for(int i = 0; i< RUNNING.length; i++) {
+            if(RUNNING[i] != null) runningIsEmpty = false;
+        }
+
+        if(READY.isEmpty() && WAITING.isEmpty() && runningIsEmpty) return false;
         else return true;
     }
     public void create(){
@@ -191,10 +198,11 @@ public class Scheduler {
             if(RUNNING[i] != null) {
                 if (RUNNING[i].operations[RUNNING[i].pointer].length == 0) {
                     RUNNING[i].pointer++;
-                }
-                if (RUNNING[i].pointer == RUNNING[i].operations.length) {
-                    pcb.TERMINATE.add(RUNNING[i]);
-                    RUNNING[i] = null;
+                    if (RUNNING[i].pointer == RUNNING[i].operations.length) {
+                        pcb.TERMINATE.add(RUNNING[i]);
+                        RUNNING[i] = null;
+                        System.out.println("There are "+pcb.processRemaining()+ " processes remaining");
+                    }
                 }
             }
         }
