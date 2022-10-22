@@ -7,10 +7,9 @@ enum State {
 }
 
 // defined as an array of Processes at a given State in its lifecycle
-public class Process {
+public class Process implements Comparable<Process>{
     int pressesID;
     int pointer = 0;
-    int priority = 1;
     State state;
     Operation[] operations;
 
@@ -46,5 +45,12 @@ public class Process {
             table += operations[i].toString()+"\n";
         }
         return table;
+    }
+
+    @Override
+    public int compareTo(Process o) {
+        if (operations[pointer].length < o.operations[o.pointer].length) return -1;
+        else if (operations[pointer].length > o.operations[o.pointer].length) return 1;
+        return 0;
     }
 }

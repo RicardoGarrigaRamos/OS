@@ -14,7 +14,9 @@ public class PCB {
     double processes = 0;
     int time = 0;
 
-
+    public int processRemaining() {
+        return NEW.size()-TERMINATE.size();
+    }
     public double averageCoreUtil(){
         double maximumOutput = time*cpu;
         return processes/maximumOutput;

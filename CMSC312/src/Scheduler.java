@@ -28,6 +28,7 @@ public class Scheduler {
             pcb.time++;
             for(int j = 0; j<RUNNING.length; j++) {
                 if((RUNNING[j] != null) && (RUNNING[j].operations[RUNNING[j].pointer].length > 0)) {
+                    if((RUNNING[j].operations[RUNNING[j].pointer].length <= 0)) i=cycles;
                     RUNNING[j].operations[RUNNING[j].pointer].length--;
                     pcb.processes++;
                 }
@@ -40,7 +41,7 @@ public class Scheduler {
      * I/O – This will put the process in the waiting state for a specified number of cycles.
      **/
     public void io(int cycles)  {
-
+        WAITING.add(READY.poll());
     }
 
     /**
@@ -92,8 +93,49 @@ public class Scheduler {
     }
 
     public void shortestJobFirst() {
-        
-        calculate();
+        //refactoring the ready queue
+        if(!READY.isEmpty()) clearRunning();
+        while(!READY.isEmpty()) {
+            io();
+        }
+
+        int i = 0;
+        //filling cpu with programs
+        while(!WAITING.isEmpty() && i< RUNNING.length) {
+            // handling critical sections
+            if(WAITING.peek().operations[WAITING.peek().pointer].operation.equals(OP.CRITICAL))
+            {
+                READY.add(WAITING.poll());
+                executeCritical();
+                //progress();
+                i=0;
+            }
+
+
+            if(!WAITING.isEmpty())
+            {
+                WAITING.peek().state = State.RUNING;
+                RUNNING[i] = WAITING.poll();
+                i++;
+            }
+        }
+
+        //letting the cpu run
+        if(RUNNING[0] != null) calculate();
+
+        //documentation
+        double cores = 0;
+        for(i=0; i< RUNNING.length; i++) {
+            if(RUNNING[i] != null)
+            {
+                System.out.println(RUNNING[i].toString());
+                cores++;
+            }
+        }
+        System.out.printf("CPU Utilized %.1f%% of cores for %.0f cycle\n\n", cores/RUNNING.length*100, 1.0);
+
+        //adjusts metadata of possess
+        progress();
     }
 
 
@@ -102,7 +144,7 @@ public class Scheduler {
 
 
     public boolean isActive() {
-        if(READY.isEmpty() && WAITING.isEmpty()) return false;
+        if(READY.isEmpty() && WAITING.isEmpty() && (RUNNING[0] ==null)) return false;
         else return true;
     }
     public void create(){
