@@ -41,7 +41,9 @@ public class Scheduler {
      * I/O – This will put the process in the waiting state for a specified number of cycles.
      **/
     public void io(int cycles)  {
-        WAITING.add(READY.poll());
+        for(int i = 0; i<cycles; i++) {
+            WAITING.add(READY.poll());
+        }
     }
 
     /**
@@ -49,7 +51,40 @@ public class Scheduler {
      * management scheme.
      **/
     public void fork() {
+        int i = 0;
+        while (!runningAtMax() && runningDividable() && isActive()) {
+            if (i < RUNNING.length-1) {
+                // final element in operations queue
+                while (RUNNING[i] != null && RUNNING[i].pointer < RUNNING[i].operations.length-1) i++;
 
+                //in case of critical section
+                if (RUNNING[i] != null && RUNNING[i].operations[RUNNING[i].pointer + 1] != null && RUNNING[i].operations[RUNNING[i].pointer + 1].operation.equals(OP.CRITICAL))
+                    return;
+
+                //Creating parent and child
+                if (RUNNING[i] != null) {
+                    Operation[] childOPs = new Operation[1];
+                    Operation[] parentOPs = new Operation[RUNNING[i].operations.length - 1];
+                    childOPs[0] = RUNNING[i].operations[RUNNING[i].pointer + 1];
+                    parentOPs[0] = RUNNING[i].operations[RUNNING[i].pointer];
+                    for (int j = 1; j < parentOPs.length; j++) {
+                        if (RUNNING[i].operations[j + 1] != null) {
+                            parentOPs[j] = RUNNING[i].operations[j + 1];
+                        }
+                    }
+                    Process parent = new Process(State.RUNNING, parentOPs, 1);
+                    Process child = new Process(State.RUNNING, childOPs, 2);
+                    pcb.NEW.add(child);
+                    RUNNING[i] = parent;
+                    for (int j = 0; j < RUNNING.length; j++) {
+                        if (RUNNING[j] == null) RUNNING[j] = child;
+                    }
+                }
+
+
+                if(i<RUNNING.length)i++;
+            } i = 0;
+        }
     }
 
 
@@ -58,18 +93,25 @@ public class Scheduler {
         //filling cpu with programs
         while(!READY.isEmpty() && i< RUNNING.length) {
             // handling critical sections
-            if(READY.peek().operations[READY.peek().pointer].operation.equals(OP.CRITICAL))
+            if(READY.peek().operations.length>READY.peek().pointer
+                    && READY.peek().operations[READY.peek().pointer] != null
+                    && READY.peek().operations[READY.peek().pointer].operation.equals(OP.CRITICAL))
             {
                 executeCritical();
                 i=0;
             }
             if(!READY.isEmpty())
             {
-                READY.peek().state = State.RUNING;
+                READY.peek().state = State.RUNNING;
                 RUNNING[i] = READY.poll();
                 i++;
             }
         }
+        // filling cpu for optimal multithreading
+        if(!runningAtMax() && runningDividable()) {
+            fork();
+        }
+
         //letting the cpu run
         if(RUNNING[0] != null) calculate(5);
 
@@ -93,7 +135,7 @@ public class Scheduler {
 
     public void shortestJobFirst() {
         while(!READY.isEmpty()) {
-            io();
+            io(READY.size());
         }
 
         int i = 0;
@@ -113,16 +155,21 @@ public class Scheduler {
             }
             if(!WAITING.isEmpty())
             {
-                WAITING.peek().state = State.RUNING;
+                WAITING.peek().state = State.RUNNING;
                 RUNNING[i] = WAITING.poll();
                 i++;
             }
+        }
+        // filling cpu for optimal multithreading
+        if(!runningAtMax() && runningDividable()) {
+            fork();
         }
 
         //letting the cpu run
         if(RUNNING[0] != null) calculate();
 
-        //documentation
+
+        //Documentation
         double cores = 0;
         for(i=0; i< RUNNING.length; i++) {
             if(RUNNING[i] != null)
@@ -136,7 +183,7 @@ public class Scheduler {
         //adjusts metadata of possess
         progress();
 
-        //refactoring the ready queue
+        // switching
         clearRunning();
     }
 
@@ -177,7 +224,7 @@ public class Scheduler {
 
     public void executeCritical() {
         clearRunning();
-        READY.peek().state = State.RUNING;
+        READY.peek().state = State.RUNNING;
         RUNNING[0] = READY.poll();
         int cycles = RUNNING[0].operations[RUNNING[0].pointer].length;
         calculate(cycles);
@@ -195,7 +242,7 @@ public class Scheduler {
     }
     public void progress() {
         for (int i = 0; i<RUNNING.length; i++) {
-            if(RUNNING[i] != null) {
+            if(RUNNING[i] != null && RUNNING[i].operations.length > RUNNING[i].pointer) {
                 if (RUNNING[i].operations[RUNNING[i].pointer].length == 0) {
                     RUNNING[i].pointer++;
                     if (RUNNING[i].pointer == RUNNING[i].operations.length) {
@@ -204,7 +251,26 @@ public class Scheduler {
                         System.out.println("There are "+pcb.processRemaining()+ " processes remaining");
                     }
                 }
+            }else if (RUNNING[i] != null && RUNNING[i].pointer == RUNNING[i].operations.length) {
+                pcb.TERMINATE.add(RUNNING[i]);
+                RUNNING[i] = null;
+                System.out.println("There are "+pcb.processRemaining()+ " processes remaining");
             }
         }
+    }
+
+    public boolean runningAtMax() {
+        for (int i = 0; i< RUNNING.length; i++) {
+            if(RUNNING[i] == null) return false;
+        }
+        return true;
+    }
+
+    public boolean runningDividable() {
+        for (int i = 0; i< RUNNING.length; i++){
+            if(RUNNING[i] != null
+                    && RUNNING[i].operations.length > RUNNING[i].pointer) return false;
+        }
+        return true;
     }
 }

@@ -3,12 +3,12 @@ import java.util.Random;
 
 // the potential States for a Program or Process
 enum State {
-    NEW, READY, RUNING, WAITING, TERMINATE;
+    NEW, READY, RUNNING, WAITING, TERMINATE;
 }
 
 // defined as an array of Processes at a given State in its lifecycle
 public class Process implements Comparable<Process>{
-    int pressesID;
+    int pressesID = 0;
     int pointer = 0;
     State state;
     Operation[] operations;
@@ -33,9 +33,10 @@ public class Process implements Comparable<Process>{
         }
         operations[random.nextInt(operations.length)].operation = OP.CRITICAL;
     }
-    public Process (State state, Operation[] operations) {
+    public Process (State state, Operation[] operations, int pressesID) {
         this.state = state;
         this.operations = operations;
+        this.pressesID = pressesID;
     }
 
 
@@ -49,8 +50,15 @@ public class Process implements Comparable<Process>{
 
     @Override
     public int compareTo(Process o) {
-        if (operations[pointer].length < o.operations[o.pointer].length) return -1;
-        else if (operations[pointer].length > o.operations[o.pointer].length) return 1;
+        if (sumOfOpLength() < o.sumOfOpLength()) return -1;
+        else if (sumOfOpLength() > o.sumOfOpLength()) return 1;
         return 0;
+    }
+    public int sumOfOpLength () {
+        int sum = 0;
+        for(int i = 0; i< operations.length; i++) {
+            sum += operations[i].length;
+        }
+        return sum;
     }
 }
