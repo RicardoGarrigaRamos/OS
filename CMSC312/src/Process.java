@@ -12,6 +12,8 @@ public class Process implements Comparable<Process>{
     int pointer = 0;
     State state;
     Operation[] operations;
+    int memory = 128;
+
 
     ProcessTemplates template;
     {
@@ -27,7 +29,8 @@ public class Process implements Comparable<Process>{
         this.state = State.NEW;
 
         Random random = new Random();
-        operations = new Operation[random.nextInt(5,8)];
+        int size = random.nextInt(5,8);
+        operations = new Operation[size];
         for (int i = 0; i< operations.length; i++) {
             operations[i] = new Operation(template.chooseOperation(), template.chooseLength());
         }

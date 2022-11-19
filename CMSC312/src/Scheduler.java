@@ -202,9 +202,11 @@ public class Scheduler {
         else return true;
     }
     public void create(){
-        pcb.NEW.push(new Process());
-        READY.add(pcb.NEW.peek());
+        pcb.NEW.add(new Process());
+        pcb.numPrograms++;
+        checkNewForReady();
     }
+
     public void calculate() {
         calculate(1);
     }
@@ -246,19 +248,29 @@ public class Scheduler {
                 if (RUNNING[i].operations[RUNNING[i].pointer].length == 0) {
                     RUNNING[i].pointer++;
                     if (RUNNING[i].pointer == RUNNING[i].operations.length) {
-                        pcb.TERMINATE.add(RUNNING[i]);
-                        RUNNING[i] = null;
-                        System.out.println("There are "+pcb.processRemaining()+ " processes remaining");
+                        terminate(i);
                     }
                 }
             }else if (RUNNING[i] != null && RUNNING[i].pointer == RUNNING[i].operations.length) {
-                pcb.TERMINATE.add(RUNNING[i]);
-                RUNNING[i] = null;
-                System.out.println("There are "+pcb.processRemaining()+ " processes remaining");
+                terminate(i);
             }
         }
     }
 
+
+    public void terminate(int i) {
+        pcb.TERMINATE.add(RUNNING[i]);
+        if(!pcb.hasVM(RUNNING[i])){
+            if(!pcb.hasMM(RUNNING[i])) {
+                pcb.mainMemory-=RUNNING[i].memory;
+            }else pcb.virtualMemory-=RUNNING[i].memory;
+        }else if (pcb.hasMM(RUNNING[i])) pcb.mainMemory-=RUNNING[i].memory;
+
+        checkNewForReady();
+
+        RUNNING[i] = null;
+        System.out.println("There are "+pcb.processRemaining()+ " processes remaining");
+    }
     public boolean runningAtMax() {
         for (int i = 0; i< RUNNING.length; i++) {
             if(RUNNING[i] == null) return false;
@@ -272,5 +284,16 @@ public class Scheduler {
                     && RUNNING[i].operations.length > RUNNING[i].pointer) return false;
         }
         return true;
+    }
+
+    public void checkNewForReady() {
+        while (!(pcb.NEW.isEmpty()) && pcb.hasMM(pcb.NEW.peek())) {
+            pcb.mainMemory+=pcb.NEW.peek().memory;
+            READY.add(pcb.NEW.poll());
+        }
+        while (!(pcb.NEW.isEmpty()) && pcb.hasVM(pcb.NEW.peek())) {
+            pcb.virtualMemory+=pcb.NEW.peek().memory;
+            READY.add(pcb.NEW.poll());
+        }
     }
 }

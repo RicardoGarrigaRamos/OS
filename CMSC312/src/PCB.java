@@ -9,17 +9,32 @@ import java.util.Stack;
 
 public class PCB {
     int cpu;
-    Stack<Process> NEW = new Stack<>();
+    int mainMemory = 0;
+    int virtualMemory = 0;
+    int totalMM = 512;
+    int totalVM = 512;
+    int numPrograms = 0;
+    Queue<Process> NEW = new LinkedList<>();
     Queue<Process> TERMINATE = new LinkedList<>();
     double processes = 0;
     int time = 0;
 
     public int processRemaining() {
-        return NEW.size()-TERMINATE.size();
+        return numPrograms-TERMINATE.size();
     }
     public double averageCoreUtil(){
         double maximumOutput = time*cpu;
         return processes/maximumOutput;
+    }
+
+    public boolean hasMM(Process process) {
+        if(mainMemory+process.memory <= totalMM) return true;
+        return false;
+    }
+
+    public boolean hasVM(Process process) {
+        if(virtualMemory+process.memory <= totalVM) return true;
+        return false;
     }
 }
 
