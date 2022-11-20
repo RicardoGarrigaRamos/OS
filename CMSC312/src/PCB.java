@@ -13,11 +13,16 @@ public class PCB {
     int virtualMemory = 0;
     int totalMM = 512;
     int totalVM = 512;
+
+    int numPinMM = 0;
+    int numPinVM = 0;
+    int numPinHDD = 0;
     int numPrograms = 0;
     Queue<Process> NEW = new LinkedList<>();
     Queue<Process> TERMINATE = new LinkedList<>();
     double processes = 0;
     int time = 0;
+
 
     public int processRemaining() {
         return numPrograms-TERMINATE.size();

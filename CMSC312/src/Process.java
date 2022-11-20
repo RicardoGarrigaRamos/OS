@@ -5,6 +5,9 @@ import java.util.Random;
 enum State {
     NEW, READY, RUNNING, WAITING, TERMINATE;
 }
+enum Location {
+    MAIN, VIRTUAL, HDD;
+}
 
 // defined as an array of Processes at a given State in its lifecycle
 public class Process implements Comparable<Process>{
@@ -13,6 +16,7 @@ public class Process implements Comparable<Process>{
     State state;
     Operation[] operations;
     int memory;
+    Location location;
 
 
     ProcessTemplates template;

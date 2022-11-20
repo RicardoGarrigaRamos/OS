@@ -145,6 +145,7 @@ public class Scheduler {
             // handling critical sections
             if(WAITING.peek().operations[WAITING.peek().pointer].operation.equals(OP.CRITICAL))
             {
+                WAITING.peek().state = State.READY;
                 READY.add(WAITING.poll());
                 executeCritical();
                 i=0;
@@ -152,7 +153,9 @@ public class Scheduler {
 
 
             while (!READY.isEmpty()) {
+                READY.peek().state = State.WAITING;
                 WAITING.add(READY.poll());
+
             }
             if(!WAITING.isEmpty())
             {
@@ -203,7 +206,9 @@ public class Scheduler {
         else return true;
     }
     public void create(){
-        pcb.NEW.add(new Process());
+        Process process = new Process();
+        process.location = Location.HDD;
+        pcb.NEW.add(process);
         pcb.numPrograms++;
         checkNewForReady();
     }
@@ -261,12 +266,16 @@ public class Scheduler {
 
     public void terminate(int i) {
         pcb.TERMINATE.add(RUNNING[i]);
+        RUNNING[i].state = State.TERMINATE;
         if(!pcb.hasVM(RUNNING[i])){
             if(!pcb.hasMM(RUNNING[i])) {
                 pcb.mainMemory-=RUNNING[i].memory;
             }else pcb.virtualMemory-=RUNNING[i].memory;
         }else if (pcb.hasMM(RUNNING[i])) pcb.mainMemory-=RUNNING[i].memory;
 
+        if(RUNNING[i].location.equals(Location.MAIN)) pcb.numPinMM--;
+        if(RUNNING[i].location.equals(Location.VIRTUAL)) pcb.numPinVM--;
+        
         checkNewForReady();
 
         RUNNING[i] = null;
@@ -290,10 +299,16 @@ public class Scheduler {
     public void checkNewForReady() {
         while (!(pcb.NEW.isEmpty()) && pcb.hasMM(pcb.NEW.peek())) {
             pcb.mainMemory+=pcb.NEW.peek().memory;
+            pcb.NEW.peek().location = Location.MAIN;
+            pcb.numPinMM++;
+            pcb.numPinHDD--;
             READY.add(pcb.NEW.poll());
         }
         while (!(pcb.NEW.isEmpty()) && pcb.hasVM(pcb.NEW.peek())) {
             pcb.virtualMemory+=pcb.NEW.peek().memory;
+            pcb.NEW.peek().location = Location.VIRTUAL;
+            pcb.numPinVM++;
+            pcb.numPinHDD--;
             READY.add(pcb.NEW.poll());
         }
     }
