@@ -103,6 +103,7 @@ public class Scheduler {
             }
             if(!READY.isEmpty())
             {
+                if(!READY.peek().location.equals(Location.MAIN))victimSelection(READY.peek());
                 READY.peek().state = State.RUNNING;
                 RUNNING[i] = READY.poll();
                 i++;
@@ -159,6 +160,7 @@ public class Scheduler {
             }
             if(!WAITING.isEmpty())
             {
+                if(!WAITING.peek().location.equals(Location.MAIN))victimSelection(WAITING.peek());
                 WAITING.peek().state = State.RUNNING;
                 RUNNING[i] = WAITING.poll();
                 i++;
@@ -208,6 +210,7 @@ public class Scheduler {
     public void create(){
         Process process = new Process();
         process.location = Location.HDD;
+        pcb.numPinHDD++;
         pcb.NEW.add(process);
         pcb.numPrograms++;
         checkNewForReady();
@@ -275,7 +278,7 @@ public class Scheduler {
 
         if(RUNNING[i].location.equals(Location.MAIN)) pcb.numPinMM--;
         if(RUNNING[i].location.equals(Location.VIRTUAL)) pcb.numPinVM--;
-        
+
         checkNewForReady();
 
         RUNNING[i] = null;
@@ -303,6 +306,8 @@ public class Scheduler {
             pcb.numPinMM++;
             pcb.numPinHDD--;
             READY.add(pcb.NEW.poll());
+
+            printProcessesLocations();
         }
         while (!(pcb.NEW.isEmpty()) && pcb.hasVM(pcb.NEW.peek())) {
             pcb.virtualMemory+=pcb.NEW.peek().memory;
@@ -310,6 +315,54 @@ public class Scheduler {
             pcb.numPinVM++;
             pcb.numPinHDD--;
             READY.add(pcb.NEW.poll());
+
+            printProcessesLocations();
+        }
+    }
+    public void printProcessesLocations() {
+        System.out.println("There are now \t"+pcb.numPinMM+ " processes in Main Memory");
+        System.out.println("\t\t\t\t" + pcb.numPinVM + " processes in Virtual Memory");
+        System.out.println("\t\t\t\t" + pcb.numPinHDD + " processes in HDD\n");
+    }
+
+    public void victimSelection(Process process) {
+        while(!pcb.hasMM(process)) {
+            Process[] ready;
+
+            if(!READY.isEmpty()){
+                ready = new Process[READY.size()];
+                READY.toArray(ready);
+            }
+            else {
+                ready = new Process[WAITING.size()];
+                WAITING.toArray(ready);
+            }
+
+
+            for(int i = 0; i< ready.length; i++) {
+                if(ready[i].location.equals(Location.MAIN)) {
+                    pcb.mainMemory-=ready[i].memory;
+                    pcb.numPinMM--;
+
+                    if(pcb.hasVM(ready[i])) {
+                        ready[i].location = Location.VIRTUAL;
+                        pcb.virtualMemory+=  ready[i].memory;
+                        pcb.numPinVM++;
+                    }
+                    else {
+                        ready[i].location = Location.HDD;
+                    }
+
+
+                    if(pcb.hasMM(process)) {
+                        if (process.location.equals(Location.VIRTUAL)) pcb.numPinVM--;
+                        if (process.location.equals(Location.HDD)) pcb.numPinHDD--;
+                        process.location = Location.MAIN;
+                        pcb.numPinMM++;
+                        return;
+                    }
+                }
+            }
         }
     }
 }
