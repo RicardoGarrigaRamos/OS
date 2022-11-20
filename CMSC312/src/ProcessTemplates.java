@@ -10,6 +10,8 @@ public class ProcessTemplates {
     OP[] ops = new OP[size];
     int[] min = new int[size];
     int[] max = new int[size];
+    int minMemory;
+    int maxMemory;
     Random random = new Random();
     int index = 0;
 
@@ -21,7 +23,8 @@ public class ProcessTemplates {
 
 
         int i = 0;
-
+        minMemory = scanner.nextInt();
+        maxMemory = scanner.nextInt();
         while (scanner.hasNext() || i<size) {
             try {
                 String text = scanner.next();
@@ -49,5 +52,9 @@ public class ProcessTemplates {
     }
     public int chooseLength () {
         return random.nextInt(min[index],max[index]);
+    }
+
+    public int chooseMemory () {
+        return random.nextInt(minMemory,maxMemory);
     }
 }

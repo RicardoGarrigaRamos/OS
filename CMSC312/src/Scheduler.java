@@ -72,8 +72,9 @@ public class Scheduler {
                             parentOPs[j] = RUNNING[i].operations[j + 1];
                         }
                     }
-                    Process parent = new Process(State.RUNNING, parentOPs, 1);
-                    Process child = new Process(State.RUNNING, childOPs, 2);
+                    int opMem = RUNNING[i].memory/RUNNING[i].operations.length;
+                    Process parent = new Process(State.RUNNING, parentOPs, 1, opMem*parentOPs.length);
+                    Process child = new Process(State.RUNNING, childOPs, 2, opMem);
                     pcb.NEW.add(child);
                     RUNNING[i] = parent;
                     for (int j = 0; j < RUNNING.length; j++) {

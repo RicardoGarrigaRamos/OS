@@ -12,7 +12,7 @@ public class Process implements Comparable<Process>{
     int pointer = 0;
     State state;
     Operation[] operations;
-    int memory = 128;
+    int memory;
 
 
     ProcessTemplates template;
@@ -35,11 +35,14 @@ public class Process implements Comparable<Process>{
             operations[i] = new Operation(template.chooseOperation(), template.chooseLength());
         }
         operations[random.nextInt(operations.length)].operation = OP.CRITICAL;
+
+        memory = template.chooseMemory();
     }
-    public Process (State state, Operation[] operations, int pressesID) {
+    public Process (State state, Operation[] operations, int pressesID, int memory) {
         this.state = state;
         this.operations = operations;
         this.pressesID = pressesID;
+        this.memory = memory;
     }
 
 
