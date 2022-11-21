@@ -11,8 +11,9 @@ enum Location {
 
 // defined as an array of Processes at a given State in its lifecycle
 public class Process implements Comparable<Process>{
-    int pressesID = 0;
+    int processID = -1;
     int pointer = 0;
+    int head = -1;
     State state;
     Operation[] operations;
     int memory;
@@ -42,10 +43,10 @@ public class Process implements Comparable<Process>{
 
         memory = template.chooseMemory();
     }
-    public Process (State state, Operation[] operations, int pressesID, int memory) {
+    public Process (State state, Operation[] operations, int processID, int memory) {
         this.state = state;
         this.operations = operations;
-        this.pressesID = pressesID;
+        this.processID = processID;
         this.memory = memory;
     }
 

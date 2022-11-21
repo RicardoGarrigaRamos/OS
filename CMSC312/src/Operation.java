@@ -7,6 +7,7 @@ enum OP {
 public class Operation {
     OP operation;
     int length;
+    int memory = 64;
 
     public Operation(OP operation, int length) {
         this.operation = operation;

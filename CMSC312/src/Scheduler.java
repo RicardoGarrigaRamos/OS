@@ -9,8 +9,12 @@ public class Scheduler {
     PriorityQueue<Process> WAITING = new PriorityQueue<>();
     Process[] RUNNING;
 
+    int memoryType = 0;
+    PageManager pageManager;
+
     public Scheduler(PCB pcb) {
         this.pcb = pcb;
+        this.pageManager = pageManager;
         RUNNING = new Process[pcb.cpu];
         for(int i = 0; i<RUNNING.length; i++) {
             RUNNING[i] = null;
@@ -35,8 +39,6 @@ public class Scheduler {
             }
         }
     }
-
-
     /**
      * I/O – This will put the process in the waiting state for a specified number of cycles.
      **/
@@ -45,7 +47,6 @@ public class Scheduler {
             WAITING.add(READY.poll());
         }
     }
-
     /**
      * FORK  –  this  will  create  a  child  process  according  to  a  selected  parent-child
      * management scheme.
@@ -103,7 +104,10 @@ public class Scheduler {
             }
             if(!READY.isEmpty())
             {
-                if(!READY.peek().location.equals(Location.MAIN))victimSelection(READY.peek());
+                if(memoryType == 2) {
+                    pageManager.victimSelection(READY.peek());
+                } else if(!READY.peek().location.equals(Location.MAIN))victimSelection(READY.peek());
+
                 READY.peek().state = State.RUNNING;
                 RUNNING[i] = READY.poll();
                 i++;
@@ -134,7 +138,6 @@ public class Scheduler {
         //refactoring the ready queue
         clearRunning();
     }
-
     public void shortestJobFirst() {
         while(!READY.isEmpty()) {
             io(READY.size());
@@ -160,7 +163,10 @@ public class Scheduler {
             }
             if(!WAITING.isEmpty())
             {
-                if(!WAITING.peek().location.equals(Location.MAIN))victimSelection(WAITING.peek());
+                if(memoryType == 2) {
+                    pageManager.victimSelection(WAITING.peek());
+                } else if(!WAITING.peek().location.equals(Location.MAIN))victimSelection(WAITING.peek());
+
                 WAITING.peek().state = State.RUNNING;
                 RUNNING[i] = WAITING.poll();
                 i++;
@@ -194,10 +200,6 @@ public class Scheduler {
     }
 
 
-
-
-
-
     public boolean isActive() {
         boolean runningIsEmpty = true;
         for(int i = 0; i< RUNNING.length; i++) {
@@ -207,22 +209,9 @@ public class Scheduler {
         if(READY.isEmpty() && WAITING.isEmpty() && runningIsEmpty) return false;
         else return true;
     }
-    public void create(){
-        Process process = new Process();
-        process.location = Location.HDD;
-        pcb.numPinHDD++;
-        pcb.NEW.add(process);
-        pcb.numPrograms++;
-        checkNewForReady();
-    }
-
     public void calculate() {
         calculate(1);
     }
-    public void io() {
-        io(1);
-    }
-
     public void clearRunning() {
         for(int i=0; i< RUNNING.length; i++) {
             if(RUNNING[i] != null) {
@@ -232,7 +221,6 @@ public class Scheduler {
             }
         }
     }
-
     public void executeCritical() {
         clearRunning();
         READY.peek().state = State.RUNNING;
@@ -265,9 +253,47 @@ public class Scheduler {
             }
         }
     }
+    public boolean runningAtMax() {
+        for (int i = 0; i< RUNNING.length; i++) {
+            if(RUNNING[i] == null) return false;
+        }
+        return true;
+    }
+    public boolean runningDividable() {
+        for (int i = 0; i< RUNNING.length; i++){
+            if(RUNNING[i] != null
+                    && RUNNING[i].operations.length > RUNNING[i].pointer) return false;
+        }
+        return true;
+    }
 
 
+
+
+    public void create(int memoryType){
+        if(this.memoryType == 0) this.memoryType = memoryType;
+
+        //noncontagious memory
+        if(this.memoryType == 2) {
+            pageManager.createPages();
+            return;
+        }
+
+        Process process = new Process();
+        process.location = Location.HDD;
+        pcb.numPinHDD++;
+        pcb.NEW.add(process);
+        pcb.numPrograms++;
+        checkNewForReady();
+    }
     public void terminate(int i) {
+
+        //noncontagious memory
+        if(this.memoryType == 2) {
+            pageManager.terminate(i);
+            return;
+        }
+
         pcb.TERMINATE.add(RUNNING[i]);
         RUNNING[i].state = State.TERMINATE;
         if(!pcb.hasVM(RUNNING[i])){
@@ -284,22 +310,14 @@ public class Scheduler {
         RUNNING[i] = null;
         System.out.println("There are "+pcb.processRemaining()+ " processes remaining");
     }
-    public boolean runningAtMax() {
-        for (int i = 0; i< RUNNING.length; i++) {
-            if(RUNNING[i] == null) return false;
-        }
-        return true;
-    }
-
-    public boolean runningDividable() {
-        for (int i = 0; i< RUNNING.length; i++){
-            if(RUNNING[i] != null
-                    && RUNNING[i].operations.length > RUNNING[i].pointer) return false;
-        }
-        return true;
-    }
-
     public void checkNewForReady() {
+
+        //noncontagious memory
+        if(this.memoryType == 2) {
+            pageManager.checkNewForReady();
+            return;
+        }
+
         while (!(pcb.NEW.isEmpty()) && pcb.hasMM(pcb.NEW.peek())) {
             pcb.mainMemory+=pcb.NEW.peek().memory;
             pcb.NEW.peek().location = Location.MAIN;
@@ -319,13 +337,14 @@ public class Scheduler {
             printProcessesLocations();
         }
     }
-    public void printProcessesLocations() {
-        System.out.println("There are now \t"+pcb.numPinMM+ " processes in Main Memory");
-        System.out.println("\t\t\t\t" + pcb.numPinVM + " processes in Virtual Memory");
-        System.out.println("\t\t\t\t" + pcb.numPinHDD + " processes in HDD\n");
-    }
-
     public void victimSelection(Process process) {
+        //noncontagious memory
+        if(this.memoryType == 2) {
+            pageManager.victimSelection(process);
+            return;
+        }
+
+
         while(!pcb.hasMM(process)) {
             Process[] ready;
 
@@ -364,5 +383,10 @@ public class Scheduler {
                 }
             }
         }
+    }
+    public void printProcessesLocations() {
+        System.out.println("There are now \t"+pcb.numPinMM+ " processes in Main Memory");
+        System.out.println("\t\t\t\t" + pcb.numPinVM + " processes in Virtual Memory");
+        System.out.println("\t\t\t\t" + pcb.numPinHDD + " processes in HDD\n");
     }
 }

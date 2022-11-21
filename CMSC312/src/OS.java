@@ -8,6 +8,7 @@ import java.util.Scanner;
  */
 public class OS {
     static Scheduler scheduler;
+    static PageManager pageManager;
     public static void main(String[] args) {
         Scanner scanner= new Scanner(System.in);
 
@@ -17,15 +18,21 @@ public class OS {
             PCB pcb  = new PCB();
             pcb.cpu = scanner.nextInt();
             scheduler = new Scheduler(pcb);
+            pageManager = new PageManager(pcb);
+            scheduler.pageManager = pageManager;
+            pageManager.scheduler = scheduler;
+
             System.out.print("Enter the number of programs\n: ");
             int programs = scanner.nextInt();
             System.out.print("Enter 1 for Round Robin\nEnter 2 for Shortest Job First\n: ");
             int schedulerType = scanner.nextInt();
+            System.out.print("Enter 1 for Continuous Memory\nEnter 2 for Noncontagious Memory\n: ");
+            int memoryType = scanner.nextInt();
 
             //runs scheduler unless there are no programs remaining
             while (schedulerType == 1 && (scheduler.isActive()||programs>0)) {
                 if(programs>0) {
-                    scheduler.create();
+                    scheduler.create(memoryType);
                     programs--;
                 }
 
@@ -35,7 +42,7 @@ public class OS {
             while ((schedulerType == 2 && (scheduler.isActive()||programs>0))) {
 
                 if(programs>0) {
-                    scheduler.create();
+                    scheduler.create(memoryType);
                     programs--;
                 }
 
