@@ -3,7 +3,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 // manages CPU usage at the command of the OS
-public class Scheduler {
+public class CPU extends Thread{
     PCB pcb;
     Queue<Process> READY = new LinkedList<>();
     PriorityQueue<Process> WAITING = new PriorityQueue<>();
@@ -12,10 +12,9 @@ public class Scheduler {
     int memoryType = 0;
     PageManager pageManager;
 
-    public Scheduler(PCB pcb) {
+    public CPU(PCB pcb) {
         this.pcb = pcb;
-        this.pageManager = pageManager;
-        RUNNING = new Process[pcb.cpu];
+        RUNNING = new Process[pcb.cpuCores];
         for(int i = 0; i<RUNNING.length; i++) {
             RUNNING[i] = null;
         }
@@ -74,8 +73,8 @@ public class Scheduler {
                         }
                     }
                     int opMem = RUNNING[i].memory/RUNNING[i].operations.length;
-                    Process parent = new Process(State.RUNNING, parentOPs, 1, opMem*parentOPs.length);
-                    Process child = new Process(State.RUNNING, childOPs, 2, opMem);
+                    Process parent = new Process(Scheduling.RUNNING, parentOPs, 1, opMem*parentOPs.length);
+                    Process child = new Process(Scheduling.RUNNING, childOPs, 2, opMem);
                     pcb.NEW.add(child);
                     RUNNING[i] = parent;
                     for (int j = 0; j < RUNNING.length; j++) {
@@ -108,7 +107,7 @@ public class Scheduler {
                     pageManager.victimSelection(READY.peek());
                 } else if(!READY.peek().location.equals(Location.MAIN))victimSelection(READY.peek());
 
-                READY.peek().state = State.RUNNING;
+                READY.peek().state = Scheduling.RUNNING;
                 RUNNING[i] = READY.poll();
                 i++;
             }
@@ -149,7 +148,7 @@ public class Scheduler {
             // handling critical sections
             if(WAITING.peek().operations[WAITING.peek().pointer].operation.equals(OP.CRITICAL))
             {
-                WAITING.peek().state = State.READY;
+                WAITING.peek().state = Scheduling.READY;
                 READY.add(WAITING.poll());
                 executeCritical();
                 i=0;
@@ -157,7 +156,7 @@ public class Scheduler {
 
 
             while (!READY.isEmpty()) {
-                READY.peek().state = State.WAITING;
+                READY.peek().state = Scheduling.WAITING;
                 WAITING.add(READY.poll());
 
             }
@@ -167,7 +166,7 @@ public class Scheduler {
                     pageManager.victimSelection(WAITING.peek());
                 } else if(!WAITING.peek().location.equals(Location.MAIN))victimSelection(WAITING.peek());
 
-                WAITING.peek().state = State.RUNNING;
+                WAITING.peek().state = Scheduling.RUNNING;
                 RUNNING[i] = WAITING.poll();
                 i++;
             }
@@ -215,7 +214,7 @@ public class Scheduler {
     public void clearRunning() {
         for(int i=0; i< RUNNING.length; i++) {
             if(RUNNING[i] != null) {
-                RUNNING[i].state = State.READY;
+                RUNNING[i].state = Scheduling.READY;
                 READY.add(RUNNING[i]);
                 RUNNING[i] = null;
             }
@@ -223,7 +222,7 @@ public class Scheduler {
     }
     public void executeCritical() {
         clearRunning();
-        READY.peek().state = State.RUNNING;
+        READY.peek().state = Scheduling.RUNNING;
         RUNNING[0] = READY.poll();
         int cycles = RUNNING[0].operations[RUNNING[0].pointer].length;
         calculate(cycles);
@@ -235,7 +234,7 @@ public class Scheduler {
         progress();
         if(RUNNING[0] != null)
         {
-            RUNNING[0].state = State.READY;
+            RUNNING[0].state = Scheduling.READY;
             READY.add(RUNNING[0]);
         }
     }
@@ -295,7 +294,7 @@ public class Scheduler {
         }
 
         pcb.TERMINATE.add(RUNNING[i]);
-        RUNNING[i].state = State.TERMINATE;
+        RUNNING[i].state = Scheduling.TERMINATE;
         if(!pcb.hasVM(RUNNING[i])){
             if(!pcb.hasMM(RUNNING[i])) {
                 pcb.mainMemory-=RUNNING[i].memory;
@@ -388,5 +387,11 @@ public class Scheduler {
         System.out.println("There are now \t"+pcb.numPinMM+ " processes in Main Memory");
         System.out.println("\t\t\t\t" + pcb.numPinVM + " processes in Virtual Memory");
         System.out.println("\t\t\t\t" + pcb.numPinHDD + " processes in HDD\n");
+    }
+
+
+    @Override
+    public void run(){
+
     }
 }

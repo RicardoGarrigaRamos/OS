@@ -9,6 +9,7 @@ import java.util.Stack;
 
 public class PCB {
     int cpu;
+    int cpuCores;
     int mainMemory = 0;
     int virtualMemory = 0;
     int totalMM = 512;
@@ -28,7 +29,7 @@ public class PCB {
         return numPrograms-TERMINATE.size();
     }
     public double averageCoreUtil(){
-        double maximumOutput = time*cpu;
+        double maximumOutput = time*cpuCores;
         return processes/maximumOutput;
     }
 

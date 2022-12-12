@@ -4,7 +4,7 @@ public class PageManager {
     LinkedList<Integer>[] pageTable = new LinkedList[16];
     int lastIn = 0;
     int maxPageSize = 64;
-    Scheduler scheduler;
+    CPU scheduler;
     PCB pcb;
 
     public PageManager(PCB pcb) {
@@ -51,7 +51,7 @@ public class PageManager {
             pageTable[scheduler.RUNNING[i].head].clear();
         }
         pcb.TERMINATE.add(scheduler.RUNNING[i]);
-        scheduler.RUNNING[i].state = State.TERMINATE;
+        scheduler.RUNNING[i].state = Scheduling.TERMINATE;
 
         checkNewForReady();
 

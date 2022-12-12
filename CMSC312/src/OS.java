@@ -7,27 +7,38 @@ import java.util.Scanner;
  * Manages software in regard to user input
  */
 public class OS {
-    static Scheduler scheduler;
+    static CPU scheduler;
     static PageManager pageManager;
     public static void main(String[] args) {
         Scanner scanner= new Scanner(System.in);
 
         int running = 1;
         while (running == 1) {
-            System.out.print("Enter the number of Cores in CPU\n: ");
             PCB pcb  = new PCB();
-            pcb.cpu = scanner.nextInt();
-            scheduler = new Scheduler(pcb);
+            scheduler = new CPU(pcb);
             pageManager = new PageManager(pcb);
             scheduler.pageManager = pageManager;
             pageManager.scheduler = scheduler;
 
+
+            System.out.print("Enter the number of CPUs\n");
+            pcb.cpu = scanner.nextInt();
+            System.out.print("Enter the number of Cores in CPU\n: ");
+            pcb.cpuCores = scanner.nextInt();
             System.out.print("Enter the number of programs\n: ");
             int programs = scanner.nextInt();
             System.out.print("Enter 1 for Round Robin\nEnter 2 for Shortest Job First\n: ");
             int schedulerType = scanner.nextInt();
             System.out.print("Enter 1 for Continuous Memory\nEnter 2 for Noncontagious Memory\n: ");
             int memoryType = scanner.nextInt();
+
+            CPU[] CPUs = new CPU[pcb.cpu];
+
+            CPUs[0] = scheduler;
+            for(int i = 1; i< pcb.cpu; i++){
+                CPUs[i] = new CPU(pcb);
+                CPUs[i].pageManager = pageManager;
+            }
 
             //runs scheduler unless there are no programs remaining
             while (schedulerType == 1 && (scheduler.isActive()||programs>0)) {
@@ -48,6 +59,12 @@ public class OS {
 
                 scheduler.shortestJobFirst();
             }
+
+
+
+
+
+
 
 
             /**

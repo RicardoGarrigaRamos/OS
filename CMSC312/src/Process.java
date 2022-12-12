@@ -2,7 +2,7 @@ import java.io.FileNotFoundException;
 import java.util.Random;
 
 // the potential States for a Program or Process
-enum State {
+enum Scheduling {
     NEW, READY, RUNNING, WAITING, TERMINATE;
 }
 enum Location {
@@ -14,7 +14,7 @@ public class Process implements Comparable<Process>{
     int processID = -1;
     int pointer = 0;
     int head = -1;
-    State state;
+    Scheduling state;
     Operation[] operations;
     int memory;
     Location location;
@@ -31,7 +31,7 @@ public class Process implements Comparable<Process>{
 
     //creates a program with a random number of random process
     public Process () {
-        this.state = State.NEW;
+        this.state = Scheduling.NEW;
 
         Random random = new Random();
         int size = random.nextInt(5,8);
@@ -43,7 +43,7 @@ public class Process implements Comparable<Process>{
 
         memory = template.chooseMemory();
     }
-    public Process (State state, Operation[] operations, int processID, int memory) {
+    public Process (Scheduling state, Operation[] operations, int processID, int memory) {
         this.state = state;
         this.operations = operations;
         this.processID = processID;
