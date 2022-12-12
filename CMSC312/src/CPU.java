@@ -9,6 +9,7 @@ public class CPU extends Thread{
     PriorityQueue<Process> WAITING = new PriorityQueue<>();
     Process[] RUNNING;
 
+    int schedulerType;
     int memoryType = 0;
     PageManager pageManager;
 
@@ -18,6 +19,7 @@ public class CPU extends Thread{
         for(int i = 0; i<RUNNING.length; i++) {
             RUNNING[i] = null;
         }
+        schedulerType = pcb.schedulerType;
     }
 
 

@@ -31,6 +31,8 @@ public class OS {
 
             System.out.print("Enter 1 for Round Robin\nEnter 2 for Shortest Job First\n: ");
             int schedulerType = scanner.nextInt();
+            pcb.schedulerType = schedulerType;
+
             System.out.print("Enter 1 for Continuous Memory\nEnter 2 for Noncontagious Memory\n: ");
             int memoryType = scanner.nextInt();
 

@@ -23,6 +23,7 @@ public class PCB {
     double processes = 0;
     int time = 0;
     int initialProcesses;
+    int schedulerType;
 
 
     public int processRemaining() {
