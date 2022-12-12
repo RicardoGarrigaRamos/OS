@@ -27,6 +27,8 @@ public class OS {
             pcb.cpuCores = scanner.nextInt();
             System.out.print("Enter the number of programs\n: ");
             int programs = scanner.nextInt();
+            pcb.initialProcesses =programs;
+
             System.out.print("Enter 1 for Round Robin\nEnter 2 for Shortest Job First\n: ");
             int schedulerType = scanner.nextInt();
             System.out.print("Enter 1 for Continuous Memory\nEnter 2 for Noncontagious Memory\n: ");

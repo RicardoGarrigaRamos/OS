@@ -1,6 +1,5 @@
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Stack;
 
 /**
  * Programs Control Block
@@ -23,6 +22,7 @@ public class PCB {
     Queue<Process> TERMINATE = new LinkedList<>();
     double processes = 0;
     int time = 0;
+    int initialProcesses;
 
 
     public int processRemaining() {
