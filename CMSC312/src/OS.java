@@ -21,7 +21,7 @@ public class OS {
             pageManager.scheduler = scheduler;
 
 
-            System.out.print("Enter the number of CPUs\n");
+            System.out.print("Enter the number of CPUs\n: ");
             pcb.cpu = scanner.nextInt();
             System.out.print("Enter the number of Cores in CPU\n: ");
             pcb.cpuCores = scanner.nextInt();
@@ -35,40 +35,19 @@ public class OS {
 
             System.out.print("Enter 1 for Continuous Memory\nEnter 2 for Noncontagious Memory\n: ");
             int memoryType = scanner.nextInt();
+            pcb.memoryType = memoryType;
 
             CPU[] CPUs = new CPU[pcb.cpu];
 
             CPUs[0] = scheduler;
             for(int i = 1; i< pcb.cpu; i++){
                 CPUs[i] = new CPU(pcb);
-                CPUs[i].pageManager = pageManager;
+                CPUs[i].pageManager = new PageManager(pcb);
+                CPUs[i].pageManager.scheduler = CPUs[i];
             }
-
-            //runs scheduler unless there are no programs remaining
-            while (schedulerType == 1 && (scheduler.isActive()||programs>0)) {
-                if(programs>0) {
-                    scheduler.create(memoryType);
-                    programs--;
-                }
-
-                scheduler.roundRobin();
-
+            for(int i = 0; i< pcb.cpu; i++){
+                CPUs[i].start();
             }
-            while ((schedulerType == 2 && (scheduler.isActive()||programs>0))) {
-
-                if(programs>0) {
-                    scheduler.create(memoryType);
-                    programs--;
-                }
-
-                scheduler.shortestJobFirst();
-            }
-
-
-
-
-
-
 
 
             /**
@@ -80,12 +59,29 @@ public class OS {
             }
              **/
 
+
+
+
+
+
+
+            boolean end = true;
             //Condition for the end of a Simulated run
-            if (programs == 0) {
-                System.out.printf("Complete.\nAverage CPU uptime was %.1f%%\n", pcb.averageCoreUtil()*100);
-                System.out.println("\nTo exit type        0\nTo go again type    1");
-                running = scanner.nextInt();
+            while(end) {
+                if (programs == 0 && !isActive(CPUs)) {
+                    System.out.printf("Complete.\nAverage CPU uptime was %.1f%%\n", pcb.averageCoreUtil() * 100);
+                    System.out.println("\nTo exit type        0\nTo go again type    1");
+                    running = scanner.nextInt();
+                    end = false;
+                }
             }
         }
+    }
+
+    public static boolean isActive(CPU[] CPUs) {
+        for(int i = 0; i< CPUs.length; i++) {
+            if(!CPUs[i].complete) return true;
+        }
+        return false;
     }
 }

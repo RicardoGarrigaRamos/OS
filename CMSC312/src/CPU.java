@@ -12,6 +12,7 @@ public class CPU extends Thread{
     int schedulerType;
     int memoryType = 0;
     PageManager pageManager;
+    boolean complete = false;
 
     public CPU(PCB pcb) {
         this.pcb = pcb;
@@ -92,6 +93,12 @@ public class CPU extends Thread{
 
 
     public void roundRobin() {
+        if(RUNNING.length==0) {
+            complete = true;
+            return;
+        }
+
+
         int i = 0;
         //filling cpu with programs
         while(!READY.isEmpty() && i< RUNNING.length) {
@@ -120,7 +127,9 @@ public class CPU extends Thread{
         }
 
         //letting the cpu run
-        if(RUNNING[0] != null) calculate(5);
+
+
+        if(RUNNING.length>0 && RUNNING[0] != null) calculate(5);
 
         //documentation
         double cores = 0;
@@ -140,6 +149,11 @@ public class CPU extends Thread{
         clearRunning();
     }
     public void shortestJobFirst() {
+        if(RUNNING.length==0) {
+            complete = true;
+            return;
+        }
+
         while(!READY.isEmpty()) {
             io(READY.size());
         }
@@ -394,6 +408,45 @@ public class CPU extends Thread{
 
     @Override
     public void run(){
+        schedulerType = pcb.schedulerType;
+        memoryType = pcb.memoryType;
 
+
+        //runs scheduler unless there are no programs remaining
+        while (schedulerType == 1 && (isActive()||pcb.initialProcesses>0) && !complete) {
+
+
+            if(pcb.initialProcesses>0) {
+                create(memoryType);
+                if(READY.isEmpty()&&pcb.NEW.isEmpty()) {
+                    complete = true;
+                    return;
+                }
+
+
+                pcb.initialProcesses--;
+            }
+
+            roundRobin();
+
+        }
+        while ((schedulerType == 2 && (isActive()||pcb.initialProcesses>0)) && !complete) {
+
+            if(pcb.initialProcesses>0) {
+                create(memoryType);
+                if(READY.isEmpty()&&pcb.NEW.isEmpty()) {
+                    complete = true;
+                    return;
+                }
+
+
+                pcb.initialProcesses--;
+            }
+
+            shortestJobFirst();
+        }
+
+
+        complete = true;
     }
 }

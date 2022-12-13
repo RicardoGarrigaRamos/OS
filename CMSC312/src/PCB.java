@@ -24,6 +24,7 @@ public class PCB {
     int time = 0;
     int initialProcesses;
     int schedulerType;
+    int memoryType;
 
 
     public int processRemaining() {
